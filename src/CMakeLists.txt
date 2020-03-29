@@ -2,6 +2,8 @@
 
 # Find dependencies
 find_package(fmt REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 
 # Executable target to build
 add_executable(opengl_eg)
@@ -15,6 +17,15 @@ target_sources(opengl_eg
 target_compile_features(opengl_eg
     PRIVATE
         cxx_std_17)
+
+# Provide some extra compiler options IF the compiler is MSVC
+# - /W3 : enable all the warnings
+# - /permissive- : tell msvc to work in conformance mode
+# - /Zc:__cpluspluc : tell msvc to report C++ version correctly
+# - /std:c++17 : tell msvc to use Standard C++ 17. CMake passes flag incorrectly
+target_compile_options(opengl_eg
+    PRIVATE 
+        $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive- /Zc:__cplusplus /std:c++17>)
 
 # If using MSVC, change program entry point to main()
 target_link_options(opengl_eg
@@ -33,4 +44,6 @@ target_compile_definitions(opengl_eg
 target_link_libraries(opengl_eg
     PRIVATE
         fmt::fmt
+        glad::glad
+        glfw
 )
