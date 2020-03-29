@@ -1,0 +1,40 @@
+# CMake Files
+build/*
+
+# VSCode Files
+.vscode/*
+CMake*.json
+*.code-workspace
+
+# VS 2019 Files
+.vs/*
+
+# C++ Compiler Generated Files
+## Prerequisites
+*.d
+
+## Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+## Precompiled Headers
+*.gch
+*.pch
+
+## Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+## Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+## Executables
+*.exe
+*.out
+*.app
