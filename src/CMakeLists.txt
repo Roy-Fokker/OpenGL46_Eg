@@ -15,7 +15,11 @@ target_sources(opengl_eg
         window.h
         window_implementation.inl
         opengl.cpp
-        opengl.h)
+        opengl.h
+        gl_shader.cpp
+        gl_shader.h
+        gl_vertex_array.cpp
+        gl_vertex_array.h)
 
 # C++ Standard to use for opengl_eg
 target_compile_features(opengl_eg
