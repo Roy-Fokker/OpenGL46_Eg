@@ -79,6 +79,11 @@ struct window::window_implementation
 		SendMessage(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 	}
 
+	void GetClientRect(RECT *window_rectangle)
+	{
+		::GetClientRect(m_hWnd, window_rectangle);
+	}
+
 	void CenterWindow()
 	{
 		RECT window_rectangle{};
@@ -117,6 +122,33 @@ struct window::window_implementation
 	void SetFocus()
 	{
 		::SetFocus(m_hWnd);
+	}
+
+	void SetWindowPos(HWND hWndInsertAfter, RECT *rect, UINT uFlags)
+	{
+		auto[x, y, w, h] = *rect;
+
+		::SetWindowPos(m_hWnd, hWndInsertAfter, x, y, w, h, uFlags);
+	}
+
+	void ModifyStyle(DWORD removeStyle, DWORD addStyle, UINT uFlags)
+	{
+		DWORD style = static_cast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_STYLE));
+		style &= ~(removeStyle);
+		style |= addStyle;
+		::SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
+
+		::SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, uFlags);
+	}
+
+	void ModifyStyleEx(DWORD removeStyleEx, DWORD addStyleEx, UINT uFlags)
+	{
+		DWORD styleEx = static_cast<DWORD>(::GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+		styleEx &= ~(removeStyleEx);
+		styleEx |= addStyleEx;
+		::SetWindowLongPtr(m_hWnd, GWL_EXSTYLE, styleEx);
+
+		::SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, uFlags);
 	}
 
 	static LRESULT CALLBACK window_procedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

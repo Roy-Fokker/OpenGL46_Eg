@@ -61,7 +61,7 @@ void opengl46_eg::window::change_style(const style window_style)
 	switch (window_style)
 	{
 		case style::normal:
-			new_style = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME,
+			new_style = WS_OVERLAPPEDWINDOW,
 			new_style_ex = WS_EX_OVERLAPPEDWINDOW;
 			break;
 		case style::borderless:
@@ -70,29 +70,29 @@ void opengl46_eg::window::change_style(const style window_style)
 			break;
 	}
 
-	// RECT draw_area{};
-	// window_impl->GetClientRect(&draw_area);
+	RECT draw_area{};
+	window_impl->GetClientRect(&draw_area);
 
-	// window_impl->ModifyStyle(clear_style, new_style, SWP_FRAMECHANGED);
-	// window_impl->ModifyStyleEx(clear_style_ex, new_style_ex, SWP_FRAMECHANGED);
+	window_impl->ModifyStyle(clear_style, new_style, SWP_FRAMECHANGED);
+	window_impl->ModifyStyleEx(clear_style_ex, new_style_ex, SWP_FRAMECHANGED);
 
-	// window_impl->ResizeClient(draw_area.right, draw_area.bottom);
+	window_impl->ResizeClient(draw_area.right, draw_area.bottom);
 
 	window_impl->CenterWindow();
 
-	// if (window_style == style::fullscreen)
-	// {
-	// 	MONITORINFO monitor_info{ sizeof(MONITORINFO) };
+	if (window_style == style::fullscreen)
+	{
+		MONITORINFO monitor_info{ sizeof(MONITORINFO) };
 
-	// 	GetMonitorInfo(MonitorFromWindow(window_impl->m_hWnd, MONITOR_DEFAULTTONEAREST), &monitor_info);
+	 	GetMonitorInfo(MonitorFromWindow(window_impl->m_hWnd, MONITOR_DEFAULTTONEAREST), &monitor_info);
 
-	// 	window_impl->SetWindowPos(HWND_TOP,
-	// 	                          &monitor_info.rcMonitor,
-	// 	                          SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-	// }
+		window_impl->SetWindowPos(HWND_TOP,
+		                          &monitor_info.rcMonitor,
+		                          SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	}
 }
 
-void opengl46_eg::window::change_size(const size &window_size)
+void opengl46_eg::window::change_size(const window::size &window_size)
 {
 	window_impl->ResizeClient(window_size.width, window_size.height);
 	window_impl->CenterWindow();
