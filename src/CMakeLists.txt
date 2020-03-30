@@ -11,7 +11,10 @@ add_executable(opengl_eg)
 # Source files used for opengl_eg
 target_sources(opengl_eg
     PRIVATE
-        main.cpp)
+        main.cpp
+        window.cpp
+        window.h
+        window_implementation.inl)
 
 # C++ Standard to use for opengl_eg
 target_compile_features(opengl_eg

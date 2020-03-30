@@ -1,10 +1,4 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <array>
-#include <string_view>
-#include <cassert>
-
+/*
 using namespace std::string_literals;
 
 struct glfw_window
@@ -181,4 +175,32 @@ int main()
 		glfwPollEvents();
 	}
 	return 0;
+}
+*/
+
+#include "window.h"
+
+int main()
+{
+	using namespace opengl46_eg;
+
+	auto wnd = window(L"OpenGL 4.6 Example",
+					  {800, 600});
+
+	bool wnd_close{false};
+	wnd.set_message_callback(window::message_type::keypress, 
+							[&](uintptr_t key_code, uintptr_t extension) -> bool
+	{
+		if (key_code == VK_ESCAPE)
+		{
+			wnd_close = true;
+		}
+		return true;
+	});
+
+	wnd.show();
+	while (wnd.handle() and (not wnd_close))
+	{
+		wnd.process_messages();
+	}
 }
