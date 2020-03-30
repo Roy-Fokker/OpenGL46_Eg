@@ -179,6 +179,9 @@ int main()
 */
 
 #include "window.h"
+#include "opengl.h"
+
+#include <array>
 
 int main()
 {
@@ -197,10 +200,18 @@ int main()
 		}
 		return true;
 	});
+	auto gl = opengl(wnd.handle());
 
+	gl.set_clear_color({0.25f, 0.5f, 0.15f, 1.0f});
+	
 	wnd.show();
 	while (wnd.handle() and (not wnd_close))
 	{
+		gl.clear_buffer();
+
+		
+
+		gl.swap_buffers();
 		wnd.process_messages();
 	}
 }

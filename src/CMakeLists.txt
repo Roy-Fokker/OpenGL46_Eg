@@ -3,7 +3,6 @@
 # Find dependencies
 find_package(fmt REQUIRED)
 find_package(glad CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
 
 # Executable target to build
 add_executable(opengl_eg)
@@ -14,7 +13,9 @@ target_sources(opengl_eg
         main.cpp
         window.cpp
         window.h
-        window_implementation.inl)
+        window_implementation.inl
+        opengl.cpp
+        opengl.h)
 
 # C++ Standard to use for opengl_eg
 target_compile_features(opengl_eg
@@ -39,6 +40,8 @@ target_link_options(opengl_eg
 # Define only for MSVC to silence deprecated header warnings
 target_compile_definitions(opengl_eg
     PRIVATE
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
         UNICODE _UNICODE
         $<$<CONFIG:Debug>:DEBUG _DEBUG>
         $<$<CXX_COMPILER_ID:MSVC>:_SILENCE_CXX17_C_HEADER_DEPRECATION_WARNING>)
@@ -48,5 +51,5 @@ target_link_libraries(opengl_eg
     PRIVATE
         fmt::fmt
         glad::glad
-        glfw
+        opengl32.lib
 )

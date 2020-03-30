@@ -1,80 +1,182 @@
 #include "window.h"
 
-#include <atlbase.h>
-#include <atlwin.h>
 #include <array>
+#include <string>
 
+using namespace std::string_view_literals;
 using namespace opengl46_eg;
 
-struct window::window_implementation : public CWindowImpl<window::window_implementation>
+struct window::window_implementation
 {
-	window_implementation() = default;
+	static constexpr std::wstring_view CLASSNAME = L"PureWin32Window"sv;
+
+
+	window_implementation()
+	{
+		Register();
+	}
 
 	~window_implementation()
 	{
+		Destroy();
+		UnRegister();
+	}
+
+	void Register()
+	{
+		WNDCLASSEX wc{};
+		wc.cbSize = sizeof(WNDCLASSEX);
+		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wc.lpszClassName = CLASSNAME.data();
+		wc.hInstance = GetModuleHandle(nullptr);
+		wc.lpfnWndProc = window_implementation::window_procedure;
+		wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+
+		RegisterClassEx(&wc);
+	}
+
+	void UnRegister()
+	{
+		HINSTANCE hInstance = GetModuleHandle(nullptr);
+		UnregisterClass(CLASSNAME.data(), hInstance);
+	}
+
+	void Create(HWND parent_hwnd, 
+	            RECT window_rectangle, 
+	            const std::wstring &title, 
+	            DWORD window_style, 
+	            DWORD window_style_ex)
+	{
+		auto[x, y, w, h] = window_rectangle;
+		w = w - x;
+		h = h - y;
+		x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+		y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+
+		m_hWnd = CreateWindowEx(window_style_ex,
+		                        CLASSNAME.data(),
+		                        title.data(),
+		                        window_style,
+		                        x, y, w, h,
+		                        parent_hwnd,
+		                        nullptr,
+		                        GetModuleHandle(nullptr),
+		                        static_cast<LPVOID>(this));
+	}
+
+	void Destroy()
+	{
 		if (m_hWnd)
 		{
-			DestroyWindow();
+			DestroyWindow(m_hWnd);
+			m_hWnd = nullptr;
 		}
 	}
 
-	BEGIN_MSG_MAP(atl_window)
-		MESSAGE_HANDLER(WM_DESTROY, on_wnd_destroy)
-		MESSAGE_HANDLER(WM_PAINT, on_wnd_paint)
-
-		MESSAGE_HANDLER(WM_ACTIVATEAPP, on_wnd_activate)
-		MESSAGE_HANDLER(WM_SIZE, on_wnd_resize)
-		MESSAGE_HANDLER(WM_KEYUP, on_wnd_keypress)
-	END_MSG_MAP()
-
-	LRESULT on_wnd_destroy(UINT msg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+	void SetIcon(HICON icon)
 	{
-		PostQuitMessage(NULL);
-		bHandled = TRUE;
-		return 0;
+		SendMessage(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)icon);
+		SendMessage(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 	}
 
-	LRESULT on_wnd_paint(UINT msg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+	void CenterWindow()
 	{
-		PAINTSTRUCT ps{ 0 };
-		HDC hdc = BeginPaint(&ps);
-		EndPaint(&ps);
+		RECT window_rectangle{};
 
-		bHandled = TRUE;
-		return 0;
+		GetWindowRect(m_hWnd, &window_rectangle);
+
+		auto[x, y, w, h] = window_rectangle;
+		w = w - x;
+		h = h - y;
+		x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+		y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+
+		MoveWindow(m_hWnd, x, y, w, h, FALSE);
 	}
 
-	LRESULT on_wnd_activate(UINT msg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+	void ResizeClient(uint32_t width, uint32_t height)
 	{
-		if (invoke_callback(message_type::activate, wParam, lParam))
+		RECT window_rectangle{};
+
+		GetWindowRect(m_hWnd, &window_rectangle);
+
+		auto[x, y, w, h] = window_rectangle;
+		w = width;
+		h = height;
+		x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+		y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+
+		MoveWindow(m_hWnd, x, y, w, h, FALSE);
+	}
+
+	void ShowWindow(int cmdShow)
+	{
+		::ShowWindow(m_hWnd, cmdShow);
+	}
+
+	void SetFocus()
+	{
+		::SetFocus(m_hWnd);
+	}
+
+	static LRESULT CALLBACK window_procedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	{
+		if (msg == WM_NCCREATE)
 		{
-			bHandled = TRUE;
-			return 0;
+			uint64_t windowPtr = reinterpret_cast<uint64_t>(reinterpret_cast<LPCREATESTRUCT>(lParam)->lpCreateParams);
+			SetWindowLongPtr(hWnd,
+			                 GWLP_USERDATA,
+			                 windowPtr);
 		}
 
-		return DefWindowProc(msg, wParam, lParam);
+		window_implementation *wnd = reinterpret_cast<window_implementation *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+		if (wnd)
+		{
+			return wnd->handle_messages(hWnd, msg, wParam, lParam);
+		}
+		else
+		{
+			return DefWindowProc(hWnd, msg, wParam, lParam);
+		}
 	}
 
-	LRESULT on_wnd_resize(UINT msg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
+	LRESULT CALLBACK handle_messages(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		if (invoke_callback(message_type::resize, wParam, lParam))
+		switch (msg)
 		{
-			bHandled = TRUE;
-			return 0;
+			case WM_DESTROY:
+			{
+				Destroy();
+				PostQuitMessage(NULL);
+				return 0;
+			}
+			case WM_SIZE:
+			{
+				if (invoke_callback(message_type::resize, wParam, lParam))
+				{
+					return 0;
+				}
+				break;
+			}
+			case WM_ACTIVATE:
+			{
+				if (invoke_callback(message_type::activate, wParam, lParam))
+				{
+					return 0;
+				}
+				break;
+			}
+			case WM_KEYDOWN:
+			{
+				if (invoke_callback(message_type::keypress, wParam, lParam))
+				{
+					return 0;
+				}
+				break;
+			}
 		}
 
-		return DefWindowProc(msg, wParam, lParam);
-	}
-
-	LRESULT on_wnd_keypress(UINT msg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
-	{
-		if (invoke_callback(message_type::keypress, wParam, lParam))
-		{
-			bHandled = TRUE;
-			return 0;
-		}
-
-		return DefWindowProc(msg, wParam, lParam);
+		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 
 	bool invoke_callback(message_type msg, WPARAM wParam, LPARAM lParam)
@@ -90,4 +192,5 @@ struct window::window_implementation : public CWindowImpl<window::window_impleme
 	}
 
 	std::array<callback_method, max_message_types> callback_methods{ nullptr };
+	HWND m_hWnd = nullptr;
 };
