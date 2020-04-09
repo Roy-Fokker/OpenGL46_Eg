@@ -26,7 +26,7 @@ gl_shader::gl_shader(const char *vs_source, const char *fs_source)
 	// Vertex Data Layout
 	position_attribute = glGetAttribLocation(shader_program, "position");
 	glEnableVertexAttribArray(position_attribute);
-	glVertexAttribPointer(position_attribute, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(position_attribute, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 }
 
 gl_shader::~gl_shader()

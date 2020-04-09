@@ -27,14 +27,17 @@ int main()
 	auto gl = opengl(wnd.handle());
 
 
-	// The triangle
+	// The rectangle
 	auto vertex_array = std::array{ (GLfloat)
-		 0.0f,  0.5f,
-		 0.5f, -0.5f, 
+		-0.5f, -0.5f,
+		-0.5f,  0.5f, 
+		 0.5f,  0.5f,
+		 0.5f,  0.5f,
+		 0.5f, -0.5f,
 		-0.5f, -0.5f,
 	};
 
-	auto triangle = gl_vertex_array(vertex_array.data(), vertex_array.size());
+	auto rectangle = gl_vertex_array(vertex_array.data(), vertex_array.size());
 
 	// Shader
 	constexpr auto vs_source = R"glsl(
@@ -55,12 +58,22 @@ int main()
 
 	void main()
 	{
-		outColor = vec4(1.0, 1.0, 1.0, 1.0);
+		gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
 	}
 	)glsl";
 
 	auto shader = gl_shader(vs_source, fs_source);
 
+	glViewport(0, 0, 800, 600);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	auto bottom = 600 / 2.0f,
+		 right = 800 / 2.0f,
+		 top = -bottom,
+		 left = -right;
+	glOrtho(left, right, bottom, top, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	gl.set_clear_color({0.25f, 0.5f, 0.15f, 1.0f});
 	
@@ -70,9 +83,9 @@ int main()
 		gl.clear_buffer();
 
 		shader.use();
-		triangle.use();
+		rectangle.use();
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		gl.swap_buffers();
 		wnd.process_messages();
