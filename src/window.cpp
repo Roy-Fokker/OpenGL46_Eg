@@ -1,13 +1,13 @@
 #include "window.h"
 
-#include "window_implementation.inl"
+#include "atl_window_implementation.inl"
 
 using namespace opengl46_eg;
 
 
 window::window(std::wstring_view title, const size &window_size, const style window_style, uint16_t window_icon)
 {
-	window_impl = std::make_unique<window_implementation>();
+	window_impl = std::make_unique<atl_window_implementation>();
 
 	DWORD default_window_style = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 	      default_window_style_ex = WS_EX_OVERLAPPEDWINDOW;

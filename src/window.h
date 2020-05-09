@@ -50,7 +50,8 @@ namespace opengl46_eg
 
 	private:
 		struct window_implementation;
+		struct atl_window_implementation;
 
-		std::unique_ptr<window_implementation> window_impl;
+		std::unique_ptr<atl_window_implementation> window_impl;
 	};
 }

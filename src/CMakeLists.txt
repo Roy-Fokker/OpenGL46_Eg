@@ -14,6 +14,7 @@ target_sources(opengl_eg
         window.cpp
         window.h
         window_implementation.inl
+        atl_window_implementation.inl
         opengl.cpp
         opengl.h
         gl_shader.cpp
